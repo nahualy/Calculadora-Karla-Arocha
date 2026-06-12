@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!-- ============================================
+     DECLARACIÓN DEL DOCUMENTO
+     HTML5 - Estándar actual para estructuración web
+     ============================================ -->
+<html lang="es">
+<head>
+    <!-- ============================================
+         METADATOS ESENCIALES
+         ============================================ -->
+    
+    <!-- Codificación UTF-8: Soporta caracteres especiales (tildes, ñ, símbolos matemáticos) -->
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Título visible en la pestaña del navegador y motores de búsqueda -->
+    <title>Calculadora Clásica</title>
+    
+    <!-- ============================================
+         HOJAS DE ESTILO (CSS)
+         ============================================ -->
+    
+    <!-- Bootstrap 5 vía CDN (Content Delivery Network)
+         Ventajas:
+         - No requiere descarga manual
+         - Servidores optimizados para carga rápida
+         - Incluye sistema de grid, componentes y utilidades -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <!-- CSS Personalizado: Nuestras reglas de diseño orgánico
+         Ruta relativa: assets/css/style.css
+         Se carga DESPUÉS de Bootstrap para sobrescribir estilos si es necesario -->
+    <link rel="stylesheet" href="src/css/style.css">
+</head>
+
+<body>
+    <!-- ============================================
+         ESTRUCTURA VISUAL DE LA APLICACIÓN
+         ============================================ -->
+
+    <!-- ============================================
+         1. BOTÓN FLOTANTE: Toggle del Historial
+         ============================================ -->
+    <!-- 
+         Atributos clave:
+         - id="toggleHistory": Selector único para que JavaScript lo identifique
+         - class="btn btn-secondary": Estilos base de Bootstrap para botones
+         - style="position-fixed; left: 0; top: 50%": CSS inline para fijar el botón 
+           en el borde izquierdo, centrado verticalmente
+         - z-index: 1000: Asegura que esté POR ENCIMA de otros elementos
+    -->
+    <button id="toggleHistory" class="btn btn-secondary position-fixed" style="left: 0; top: 50%; z-index: 1000;">
+        📋 <!-- Icono visual representando "historial" -->
+    </button>
+    
+    <!-- ============================================
+         2. PANEL LATERAL DE HISTORIAL (Sidebar)
+         ============================================ -->
+    <!-- 
+         Este panel está oculto por defecto mediante CSS (left: -320px).
+         JavaScript le agrega la clase ".show" para deslizarlo (transición CSS).
+         
+         Estructura semántica:
+         - history-panel: Contenedor principal
+         - history-header: Cabecera con título y botón de cerrar
+         - history-list: Área dinámica donde se inyectan los cálculos
+         - clearHistory: Botón para vaciar el historial
+    -->
+    <div id="historyPanel" class="history-panel">
+        <div class="history-header">
+            <h5>Historial</h5>
+            <!-- Botón de cerrar con estilo nativo de Bootstrap -->
+            <button id="closeHistory" class="btn-close"></button>
+        </div>
+        
+        <!-- Contenedor dinámico: JavaScript manipula este elemento para agregar/quitar items -->
+        <div class="history-list" id="historyList">
+            <!-- Estado inicial: Mensaje cuando no hay operaciones guardadas -->
+            <div class="history-item text-muted text-center">Sin historial</div>
+        </div>
+        
+        <!-- Botón para limpiar todo el historial -->
+        <!-- btn-outline-danger: Estilo Bootstrap para acciones destructivas -->
+        <button id="clearHistory" class="btn btn-outline-danger btn-sm m-3">Limpiar Historial</button>
+    </div>
+    
+    <!-- ============================================
+         3. CONTENEDOR PRINCIPAL: Layout de la Calculadora
+         ============================================ -->
+    <div class="container mt-5">
+        <!-- Wrapper Flexbox: Organiza calculadora + panel científico en fila (desktop) o columna (móvil) -->
+        <div class="calculator-wrapper">
+            
+            <!-- ============================================
+                 A. CUERPO DE LA CALCULADORA PRINCIPAL
+                 ============================================ -->
+            <div class="calculator">
+                
+                <!-- Display: Entrada y salida de datos -->
+                <div class="display-container">
+                    <!-- 
+                         INPUT PRINCIPAL:
+                         - type="text": Permite mostrar números, operadores y símbolos (√, π, etc.)
+                         - id="display": Selector único para que JS lea/escriba el valor
+                         - class="form-control": Estilo Bootstrap para inputs
+                         - autocomplete="off": Evita que el navegador sugiera valores anteriores
+                         - placeholder="0": Texto guía visual cuando el campo está vacío
+                    -->
+                    <input type="text" id="display" class="form-control" autocomplete="off" placeholder="0">
+                </div>
+                
+                <!-- ============================================
+                     GRID DE BOTONES: Disposición 4 columnas x 5 filas
+                     ============================================ -->
+                <div class="buttons-container">
+                    
+                    <!-- ============================================
+                         PATRÓN DE DISEÑO: Data Attributes para Comunicación HTML ↔ JS
+                         ============================================ -->
+                    <!-- 
+                         Los atributos "data-*" son personalizados y permiten almacenar información
+                         que JavaScript puede leer fácilmente sin depender del texto visible.
+                         
+                         Ejemplo: 
+                         - Texto visible: "÷" (símbolo amigable para el usuario)
+                         - data-op="/" (operador que JavaScript entiende para evaluar)
+                         
+                         Esto separa la CAPA DE PRESENTACIÓN (HTML) de la CAPA DE LÓGICA (JS).
+                    -->
+                    
+                    <!-- Fila 1: Números 7-9 + Operador % -->
+                    <button class="btn btn-number" data-num="7">7</button>
+                    <button class="btn btn-number" data-num="8">8</button>
+                    <button class="btn btn-number" data-num="9">9</button>
+                    <!-- QuerySelect: Clase especial que activa el evento Toast al hacer click -->
+                    <button class="btn btn-operator QuerySelect" data-op="%">%</button>
+                    
+                    <!-- Fila 2: Números 4-6 + Operador ÷ -->
+                    <button class="btn btn-number" data-num="4">4</button>
+                    <button class="btn btn-number" data-num="5">5</button>
+                    <button class="btn btn-number" data-num="6">6</button>
+                    <!-- Nota: data-op="/" pero el texto es "÷" para mejor UX -->
+                    <button class="btn btn-operator QuerySelect" data-op="/">÷</button>
+                    
+                    <!-- Fila 3: Números 1-3 + Operador - -->
+                    <button class="btn btn-number" data-num="1">1</button>
+                    <button class="btn btn-number" data-num="2">2</button>
+                    <button class="btn btn-number" data-num="3">3</button>
+                    <button class="btn btn-operator QuerySelect" data-op="-">-</button>
+                    
+                    <!-- Fila 4: 0, punto decimal, igual, operador - -->
+                    <button class="btn btn-number" data-num="0">0</button>
+                    <button class="btn btn-dot" data-dot=".">.</button>
+                    <button class="btn btn-equal" data-equal="=">=</button>
+                    <button class="btn btn-operator QuerySelect" data-op="*">×</button>
+                    
+                    <!-- Fila 5: Operadores adicionales y paréntesis -->
+                    <button class="btn btn-operator QuerySelect" data-op="+">+</button>
+                    <!-- Botón Clear: No tiene data-op porque su lógica es especial (limpiar todo) -->
+                    <button class="btn btn-clear" id="btn-clear">C</button>
+                    <!-- Paréntesis para agrupar operaciones: esenciales para funciones científicas -->
+                    <button class="btn btn-operator QuerySelect" data-op="(">(</button>
+                    <button class="btn btn-operator QuerySelect" data-op=")">)</button>
+                </div>
+            </div>
+            
+            <!-- ============================================
+                 B. PANEL CIENTÍFICO: Columna derecha con funciones avanzadas
+                 ============================================ -->
+            <!-- 
+                 Diseño modular: Separamos los operadores científicos en un panel independiente
+                 para mantener el código organizado y facilitar futuras ampliaciones.
+            -->
+            <div class="scientific-panel">
+                <!-- Todos con clase QuerySelect para activar el Toast de notificación -->
+                <button class="btn btn-scientific QuerySelect" data-op="sqrt">√</button>
+                <button class="btn btn-scientific QuerySelect" data-op="cos">cos</button>
+                <button class="btn btn-scientific QuerySelect" data-op="sin">sin</button>
+                <button class="btn btn-scientific QuerySelect" data-op="tan">tan</button>
+                <button class="btn btn-scientific QuerySelect" data-op="log">log</button>
+                <button class="btn btn-scientific QuerySelect" data-op="ln">ln</button>
+                <button class="btn btn-scientific QuerySelect" data-op="^">x^y</button>
+                <button class="btn btn-scientific QuerySelect" data-op="pi">π</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ============================================
+         4. COMPONENTE TOAST: Notificación flotante de Bootstrap
+         ============================================ -->
+    <!-- 
+         Estructura obligatoria de Bootstrap para Toasts:
+         - toast-container: Posiciona el toast en la esquina (bottom-0 end-0)
+         - toast: Componente principal con roles de accesibilidad (aria-live)
+         - toast-header: Cabecera con título y botón de cerrar
+         - toast-body: Contenido dinámico que JavaScript actualiza
+         
+         Este componente se muestra automáticamente cuando el usuario
+         hace click en un botón con clase "QuerySelect".
+    -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="operatorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header" style="background: var(--calculator-body); color: white;">
+                <strong class="me-auto">Operador seleccionado</strong>
+                <small class="text-muted">ahora</small>
+                <!-- data-bs-dismiss="toast": Atributo de Bootstrap para cerrar automáticamente -->
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Has seleccionado el operador: <strong>+</strong>
+            </div>
+        </div>
+    </div>
+
+      <!-- Footer simple -->
+<footer class="calculator-footer">
+    <p>Karla Arocha, EDTecnica</p>
+</footer>
+    <!-- ============================================
+         5. SCRIPTS: Carga de lógica y funcionalidad
+         ============================================ -->
+    <!-- 
+         ORDEN DE CARGA CRÍTICO:
+         1. Bootstrap JS Bundle: Debe cargarse PRIMERO porque nuestro script depende de sus componentes (Toast)
+         2. script.js: Nuestro código personalizado que inicializa la calculadora
+         
+         Se colocan al FINAL del <body> para asegurar que todo el HTML
+         ya esté renderizado antes de que JavaScript intente seleccionar elementos.
+         Esto evita errores de "element not found".
+    -->
+    
+    <!-- Bootstrap JS Bundle: Incluye Popper.js para componentes interactivos -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <!-- Script Personalizado: Lógica principal de la calculadora -->
+    <script src="src/js/script.js"></script>
+
+  
+
+</body>
+</html>
+
+

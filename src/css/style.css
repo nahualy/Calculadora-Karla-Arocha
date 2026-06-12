@@ -1,0 +1,706 @@
+/* ============================================
+   CALCULADORA CLÁSICA - STYLE.CSS
+   Tema orgánico oscuro con panel científico
+   
+   ARQUITECTURA CSS:
+   - CSS Custom Properties (Variables) para mantenimiento
+   - Mobile-First con Media Queries
+   - Flexbox + Grid para layouts modernos
+   - Transiciones y efectos para UX profesional
+   ============================================ */
+
+/* ============================================
+   1. IMPORTACIÓN DE FUENTES EXTERNAS
+   ============================================ */
+/* 
+   @import rule: Carga fuentes de Google Fonts
+   'Share Tech Mono': Fuente monoespaciada estilo LCD para display y botones
+   - Ideal para calculadoras: cada carácter ocupa el mismo espacio
+   - Mejora la legibilidad de números y operadores
+   
+   Nota: Se importa en CSS (no en HTML) para mantener las fuentes 
+   relacionadas con el diseño visual.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* ============================================
+   2. VARIABLES CSS (Custom Properties)
+   ============================================ */
+/* 
+   :root → Selector de mayor especificidad, define variables GLOBALES
+   
+   VENTAJAS de usar CSS Variables:
+   ✅ Mantenimiento: Cambias un color en un solo lugar y se actualiza en toda la app
+   ✅ Consistencia: Evita errores de escribir códigos hexadecimales diferentes
+   ✅ Temas: Fácil crear modo oscuro/claro cambiando las variables
+   ✅ Legibilidad: --calculator-body es más descriptivo que #2d4a4a
+   
+   PALETA ORGÁNICA:
+   - Tonos tierra, verdes azulados y beige para estética natural
+   - Contraste adecuado para accesibilidad visual
+*/
+:root {
+    /* Cuerpo de la calculadora */
+    --calculator-body: #2d4a4a;      /* Verde azulado oscuro (teal) */
+    --calculator-dark: #1a2f2f;      /* Versión más oscura para bordes/sombras */
+    
+    /* Botones numéricos */
+    --button-number: #e8e4d9;        /* Beige claro para números */
+    --button-hover: #d4cfc4;         /* Beige ligeramente más oscuro para hover */
+    
+    /* Botones de operación */
+    --button-operator: #c9b99a;      /* Tierra claro para operadores básicos */
+    
+    /* Botón igual */
+    --button-equal: #8b9d83;         /* Verde musgo para destacar la acción principal */
+    
+    /* Display (pantalla) */
+    --display-bg: #9fb8a8;           /* Verde suave para fondo del display */
+    --display-text: #1a2f2f;         /* Texto oscuro para contraste en display */
+    
+    /* Panel de historial */
+    --history-bg: #f5f1e8;           /* Crema claro para fondo del historial */
+    
+    /* Texto principal */
+    --text-primary: #2d4a4a;         /* Color base para texto */
+    
+    /* Sombras y efectos */
+    --shadow: rgba(0, 0, 0, 0.3);    /* Sombra semi-transparente reutilizable */
+    
+    /* Panel científico (tonos más cálidos para diferenciar) */
+    --scientific-bg: #8b7355;        /* Marrón tierra para botones científicos */
+    --scientific-hover: #9b8365;     /* Hover más claro */
+    --scientific-shadow: #6b5344;    /* Sombra sólida para efecto 3D */
+}
+
+/* ============================================
+   3. RESET CSS BÁSICO
+   ============================================ */
+/* 
+   Selector universal (*) para normalizar estilos por defecto del navegador
+   
+   box-sizing: border-box → CRÍTICO para layouts predecibles
+   - Sin esto: padding y border se SUMAN al width/height
+   - Con esto: padding y border se INCLUYEN en el width/height
+   - Resultado: Los elementos no se "desbordan" inesperadamente
+*/
+* {
+    margin: 0;              /* Elimina márgenes por defecto */
+    padding: 0;             /* Elimina rellenos por defecto */
+    box-sizing: border-box; /* Modelo de caja consistente */
+}
+
+/* ============================================
+   4. ESTILOS DEL BODY (Fondo y Tipografía)
+   ============================================ */
+body {
+    /* 
+       Gradient lineal: Crea profundidad y estética orgánica
+       - 135deg: Dirección diagonal (más dinámico que horizontal/vertical)
+       - 3 colores: Transición suave de oscuro a ligeramente más claro
+    */
+    background: linear-gradient(135deg, #1f2f2f 0%, #2d4a3f 50%, #1a2f2a 100%);
+    
+    /* 
+       min-height: 100vh → Ocupa al menos el 100% del viewport height
+       - Evita que el fondo se corte en pantallas pequeñas
+       - vh = viewport height (unidad relativa a la pantalla)
+    */
+    min-height: 100vh;
+    
+    /* 
+       Font stack: Lista de fuentes en orden de preferencia
+       - 'Segoe UI': Fuente moderna de Windows
+       - Fallbacks: Tahoma, Geneva, Verdana, sans-serif
+       - Objetivo: Consistencia visual entre sistemas operativos
+    */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    /* Color de texto por defecto usando variable CSS */
+    color: var(--text-primary);
+}
+
+/* ============================================
+   5. BOTÓN TOGGLE DEL HISTORIAL
+   ============================================ */
+#toggleHistory {
+    /* Posicionamiento fijo: Flota sobre el contenido sin importar scroll */
+    position: fixed;
+    
+    /* Ubicación: Izquierda de la pantalla, centrado verticalmente */
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%); /* Corrección para centrado perfecto */
+    
+    /* Estilos visuales */
+    background: var(--calculator-body);
+    border: none;
+    padding: 15px 10px;
+    border-radius: 0 8px 8px 0; /* Solo bordes redondos a la derecha */
+    font-size: 1.5rem;
+    
+    /* Efectos de profundidad */
+    box-shadow: 2px 2px 8px var(--shadow);
+    
+    /* Transición suave para hover y estado activo */
+    transition: all 0.3s ease;
+    
+    /* z-index: Asegura que esté POR ENCIMA de otros elementos */
+    z-index: 1001; /* Mayor que el panel de historial (999) */
+}
+
+/* Efecto hover: Feedback visual al pasar el mouse */
+#toggleHistory:hover {
+    background: var(--calculator-dark);
+    transform: translateY(-50%) translateX(3px); /* Pequeño movimiento hacia la derecha */
+}
+
+/* ============================================
+   6. PANEL DE HISTORIAL (Sidebar Deslizable)
+   ============================================ */
+.history-panel {
+    /* 
+       Posicionamiento para efecto "off-canvas" (fuera de pantalla)
+       - left: -320px → Oculto a la izquierda (ancho del panel + margen)
+       - transition: left 0.3s ease → Animación suave al mostrar/ocultar
+    */
+    position: fixed;
+    left: -320px;  /* Estado oculto por defecto */
+    top: 0;
+    
+    /* Dimensiones fijas para el sidebar */
+    width: 300px;
+    height: 100vh; /* Ocupa toda la altura de la ventana */
+    
+    /* Estilos visuales */
+    background: var(--history-bg);
+    box-shadow: 4px 0 15px var(--shadow); /* Sombra hacia la derecha para profundidad */
+    border-right: 3px solid var(--calculator-body); /* Borde decorativo */
+    
+    /* Comportamiento de scroll si hay muchos items */
+    overflow-y: auto;
+    
+    /* Capa de apilamiento: Debajo del toggle pero sobre el contenido */
+    z-index: 999;
+    
+    /* Transición para animación de deslizamiento */
+    transition: left 0.3s ease;
+}
+
+/* 
+   ESTADO ACTIVO: Clase ".show" agregada/removida por JavaScript
+   - Cambia left de -320px a 0 → Panel se desliza hacia adentro
+   - La transición CSS hace la animación automáticamente
+*/
+.history-panel.show {
+    left: 0;  /* Visible en pantalla */
+}
+
+/* Cabecera del historial: Flexbox para alinear título y botón de cerrar */
+.history-header {
+    background: var(--calculator-body);
+    color: var(--button-number);
+    padding: 20px;
+    
+    /* Flexbox: Alineación horizontal con espacio entre elementos */
+    display: flex;
+    justify-content: space-between; /* Título a la izquierda, botón a la derecha */
+    align-items: center; /* Centrado vertical */
+}
+
+.history-header h5 {
+    margin: 0; /* Elimina margen por defecto de h5 */
+    font-family: 'Share Tech Mono', monospace; /* Fuente técnica para coherencia */
+    font-size: 1.3rem;
+}
+
+/* Botón de cerrar: Estilo minimalista */
+#closeHistory {
+    background: transparent;
+    border: none;
+    filter: invert(1); /* Invierte colores del botón X de Bootstrap para que sea visible */
+    padding: 0;
+}
+
+/* Lista de items del historial */
+.history-list {
+    padding: 20px;
+    /* Altura dinámica: viewport menos espacio para header y botón */
+    min-height: calc(100vh - 150px);
+}
+
+/* Item individual del historial */
+.history-item {
+    background: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    
+    /* Tipografía técnica para números y operaciones */
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    
+    /* Sombra sutil para efecto de tarjeta */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    
+    /* Borde izquierdo decorativo con color de la calculadora */
+    border-left: 4px solid var(--calculator-body);
+    
+    /* word-break: Evita que expresiones largas rompan el layout */
+    word-break: break-all;
+}
+
+/* Botón "Limpiar Historial": Estilo discreto y elegante */
+#clearHistory {
+    width: auto; /* Se ajusta al contenido, no ocupa todo el ancho */
+    padding: 6px 12px;
+    margin: 25px 60px !important; /* !important para sobrescribir estilos de Bootstrap */
+    
+    /* Estilo "outline": Fondo semi-transparente con borde */
+    background: rgba(184, 149, 107, 0.05);
+    border: 1px solid #a87f4d;
+    color: #af8858;
+    
+    /* Tipografía pequeña y legible */
+    font-size: 0.85rem;
+    font-weight: 800;
+    border-radius: 40px; /* Pill shape (forma de píldora) */
+    
+    /* Opacidad para hacerlo menos prominente */
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+#clearHistory:hover {
+    background: rgba(184, 149, 107, 0.1); /* Ligeramente más visible al hover */
+    opacity: 1; /* Opacidad completa al interactuar */
+}
+
+/* ============================================
+   7. WRAPPER: Layout Principal (Flexbox)
+   ============================================ */
+.container {
+    /* 
+       Flexbox para centrar contenido horizontal y verticalmente
+       - justify-content: center → Centrado horizontal
+       - align-items: flex-start → Alineación arriba (no centrado vertical forzado)
+    */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    
+    min-height: 100vh; /* Ocupa toda la altura disponible */
+    padding: 20px 10px; /* Espaciado interno para no pegar a los bordes */
+}
+
+/* Contenedor flexible para calculadora + panel científico */
+.calculator-wrapper {
+    display: flex;
+    gap: 15px; /* Espacio uniforme entre hijos (calculadora y panel) */
+    justify-content: center;
+    align-items: flex-start;
+    
+    /* flex-wrap: Permite que los elementos bajen en pantallas pequeñas */
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   8. CALCULADORA PRINCIPAL (Estilo Casio)
+   ============================================ */
+.calculator {
+    /* Estética de calculadora física */
+    background: var(--calculator-body);
+    border-radius: 20px; /* Bordes redondeados suaves */
+    padding: 25px; /* Espaciado interno generoso */
+    
+    /* 
+       Sombras múltiples para efecto 3D realista:
+       - 0 20px 50px: Sombra difusa grande (elevación)
+       - inset 0 2px 5px: Sombra interna (bisel superior)
+    */
+    box-shadow: 
+        0 20px 50px rgba(0,0,0,0.4),
+        inset 0 2px 5px rgba(255,255,255,0.1);
+    
+    max-width: 350px; /* Ancho máximo para no verse enorme en desktop */
+    width: 100%; /* Responsive: Se ajusta en móviles */
+    
+    /* Borde grueso simulando marco físico de calculadora */
+    border: 8px solid var(--calculator-dark);
+}
+
+/* Contenedor del display */
+.display-container {
+    margin-bottom: 20px; /* Espacio entre display y botones */
+    background: var(--calculator-dark);
+    padding: 15px;
+    border-radius: 10px;
+    
+    /* Sombra interna para efecto de pantalla hundida */
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Input del display (donde se muestran los números) */
+#display {
+    background: var(--display-bg);
+    
+    /* Cursor de texto para indicar que es editable */
+    cursor: text;
+    caret-color: var(--display-text); /* Color del cursor parpadeante */
+    
+    border: none; /* Sin borde nativo, usamos sombras personalizadas */
+    padding: 20px;
+    
+    /* Tipografía estilo LCD */
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2.5rem; /* Tamaño grande para legibilidad */
+    text-align: right; /* Alineación derecha como calculadoras reales */
+    color: var(--display-text);
+    
+    border-radius: 5px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); /* Efecto de pantalla */
+    
+    letter-spacing: 2px; /* Espaciado entre caracteres para estilo digital */
+    width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+/* Placeholder (texto guía cuando está vacío) */
+#display::placeholder {
+    color: rgba(26, 47, 47, 0.4); /* Más tenue que el texto normal */
+}
+
+/* Estado focus: Cuando el usuario hace clic para escribir */
+#display:focus {
+    outline: 2px solid var(--calculator-body); /* Indicador visual de foco accesible */
+}
+
+/* ============================================
+   9. GRID DE BOTONES (CSS Grid Layout)
+   ============================================ */
+.buttons-container {
+    /* 
+       CSS Grid: Sistema de layout bidimensional
+       - grid-template-columns: repeat(4, 1fr) → 4 columnas de igual ancho
+       - gap: 12px → Espacio uniforme entre celdas (más limpio que margins)
+    */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+/* ============================================
+   10. ESTILOS BASE DE BOTONES
+   ============================================ */
+.btn {
+    /* Dimensiones y tipografía */
+    height: 65px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    
+    /* Eliminación de estilos nativos */
+    border: none;
+    border-radius: 12px; /* Bordes redondeados modernos */
+    
+    /* 
+       Efecto 3D con sombras:
+       - 0 4px 0: Sombra sólida inferior (simula grosor del botón)
+       - 0 5px 10px: Sombra difusa (proyección en el fondo)
+    */
+    box-shadow: 
+        0 4px 0 rgba(0,0,0,0.3),
+        0 5px 10px rgba(0,0,0,0.2);
+    
+    /* Posicionamiento relativo para animación de "presionar" */
+    position: relative;
+    top: 0;
+    
+    /* Cursor y tipografía */
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    
+    /* Transición suave para todos los cambios de estado */
+    transition: all 0.15s ease;
+}
+
+/* Estado :active (cuando el botón está siendo presionado) */
+.btn:active {
+    top: 4px; /* Movimiento hacia abajo simulando presión física */
+    box-shadow: 
+        0 0 0 rgba(0,0,0,0.3), /* Elimina sombra proyectada */
+        inset 0 2px 5px rgba(0,0,0,0.2); /* Añade sombra interna (hundido) */
+}
+
+/* ============================================
+   11. VARIANTES DE BOTONES POR FUNCIÓN
+   ============================================ */
+
+/* Botones numéricos (0-9) */
+.btn-number {
+    background: var(--button-number);
+    color: var(--text-primary);
+}
+.btn-number:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px); /* Pequeño "lift" al pasar el mouse */
+}
+
+/* Botones de operación básica (+, -, ×, ÷, %) */
+.btn-operator {
+    background: var(--button-operator);
+    color: var(--text-primary);
+    font-weight: 700; /* Más grueso para destacar operadores */
+}
+.btn-operator:hover {
+    background: #b8a88a;
+    transform: translateY(-2px);
+}
+
+/* Botón decimal (punto) */
+.btn-dot {
+    background: var(--button-number);
+    color: var(--text-primary);
+}
+.btn-dot:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+}
+
+/* Botón igual (=): Acción principal, color distintivo */
+.btn-equal {
+    background: var(--button-equal);
+    color: white; /* Texto blanco para contraste sobre verde */
+    font-weight: 700;
+}
+.btn-equal:hover {
+    background: #7a8d72;
+    transform: translateY(-2px);
+}
+
+/* Botón Clear (C): Color de alerta (terracota) */
+.btn-clear {
+    background: #b56b56; /* Terracota para indicar acción destructiva */
+    color: white;
+    font-weight: bold;
+}
+.btn-clear:hover {
+    background: #a05c49;
+    transform: translateY(-2px);
+}
+.btn-clear:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 #8a4e3d; /* Efecto de presión más pronunciado */
+}
+
+/* ============================================
+   12. PANEL CIENTÍFICO (Columna Derecha)
+   ============================================ */
+.scientific-panel {
+    /* Flexbox vertical para apilar botones */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre botones científicos */
+    
+    /* Estética distinta para diferenciar funciones avanzadas */
+    background: var(--calculator-dark);
+    padding: 15px;
+    border-radius: 15px;
+    border: 5px solid var(--calculator-body); /* Marco decorativo */
+    
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Sombra para profundidad */
+    
+    /* align-self: stretch → Ocupa la altura disponible del wrapper */
+    align-self: stretch;
+}
+
+/* Botones científicos (√, cos, sin, etc.) */
+.btn-scientific {
+    background: var(--scientific-bg);
+    color: white;
+    
+    /* Tipografía ligeramente más pequeña para textos largos */
+    font-size: 1rem;
+    font-weight: 600;
+    
+    padding: 15px 10px;
+    border: none;
+    border-radius: 10px;
+    
+    cursor: pointer;
+    transition: all 0.15s ease;
+    
+    /* Sombra sólida para efecto de botón físico */
+    box-shadow: 0 3px 0 var(--scientific-shadow);
+    
+    min-width: 70px; /* Ancho mínimo para que quepan textos como "x^y" */
+    font-family: 'Share Tech Mono', monospace;
+    
+    height: auto; /* Altura flexible según contenido */
+}
+
+.btn-scientific:hover {
+    background: var(--scientific-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--scientific-shadow); /* Sombra más pronunciada */
+}
+
+.btn-scientific:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 var(--scientific-shadow); /* Efecto de presión */
+}
+
+/* ============================================
+   13. TOAST DE NOTIFICACIONES (Bootstrap)
+   ============================================ */
+#operatorToast {
+    /* Estilos personalizados para integrar con nuestro tema */
+    background: var(--history-bg);
+    border: 1px solid var(--calculator-body);
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    min-width: 280px; /* Ancho mínimo para legibilidad */
+}
+
+#operatorToast .toast-header {
+    background: var(--calculator-body);
+    color: white;
+    border-radius: 10px 10px 0 0; /* Solo bordes superiores redondos */
+    border: none;
+}
+
+#operatorToast .toast-body {
+    color: var(--text-primary);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+}
+
+/* Ajuste del botón de cerrar del toast para tema oscuro */
+#operatorToast .btn-close {
+    filter: invert(1); /* Invierte colores para que sea visible */
+}
+
+/* ============================================
+   14. RESPONSIVE DESIGN (Media Queries)
+   ============================================ */
+/* 
+   Mobile-First Strategy:
+   - Estilos base para desktop
+   - Media queries para ajustar en pantallas más pequeñas
+   
+   Breakpoints:
+   - 768px: Tablets y móviles grandes
+   - 480px: Móviles pequeños
+*/
+
+/* Tablet y móviles grandes (max-width: 768px) */
+@media (max-width: 768px) {
+    /* Cambiar layout a columna: calculadora arriba, panel científico abajo */
+    .calculator-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    /* Panel científico: cambiar a fila horizontal para ahorrar espacio vertical */
+    .scientific-panel {
+        flex-direction: row;
+        flex-wrap: wrap; /* Permite que los botones bajen si no caben */
+        justify-content: center;
+        max-width: 350px; /* Mismo ancho que la calculadora para alineación */
+        padding: 10px;
+    }
+    
+    /* Botones científicos más compactos */
+    .btn-scientific {
+        min-width: 60px;
+        padding: 10px 8px;
+        font-size: 0.9rem;
+        height: 50px;
+    }
+    
+    /* Calculadora con menos padding en móviles */
+    .calculator {
+        padding: 15px;
+        margin: 0 auto; /* Centrado horizontal */
+    }
+    
+    /* Botones principales más pequeños */
+    .btn {
+        height: 55px;
+        font-size: 1.2rem;
+    }
+    
+    /* Display con tamaño reducido */
+    #display {
+        font-size: 2rem;
+        padding: 15px;
+    }
+    
+    /* Panel de historial más estrecho */
+    .history-panel {
+        width: 250px;
+        left: -250px; /* Ajustar posición oculta al nuevo ancho */
+    }
+}
+
+/* Móviles pequeños (max-width: 480px) */
+@media (max-width: 480px) {
+    .scientific-panel {
+        gap: 8px; /* Menos espacio entre botones científicos */
+    }
+    
+    .btn-scientific {
+        min-width: 50px;
+        font-size: 0.8rem;
+        padding: 8px 6px;
+        height: 45px;
+    }
+    
+    .buttons-container {
+        gap: 8px; /* Grid de botones más compacto */
+    }
+    
+    .btn {
+        height: 50px;
+        font-size: 1.1rem;
+    }
+}
+
+/* ============================================
+   15. ANIMACIONES SUAVES (Performance)
+   ============================================ */
+/* 
+   Limitar transitions a elementos clave para optimizar rendimiento
+   - Evitar transition: all en * (puede causar lag en móviles)
+   - Usar transform y opacity para animaciones fluidas (aceleración por GPU)
+*/
+.btn,
+#toggleHistory,
+.history-panel,
+#clearHistory {
+    transition: all 0.2s ease;
+}
+
+/* ============================================
+   FOOTER SIMPLE
+   ============================================ */
+.calculator-footer {
+    text-align: center;
+    padding: 20px 10px;
+    color: rgba(228, 228, 221, 0.7);  /* Beige suave con transparencia */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.9rem;
+    background: transparent;
+    margin-top: 30px;
+}
+
+.calculator-footer p {
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive: ajustar en móviles */
+@media (max-width: 480px) {
+    .calculator-footer {
+        font-size: 0.8rem;
+        padding: 15px 10px;
+    }
+}
